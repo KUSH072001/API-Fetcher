@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data Fetcher</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>API Data Fetcher</h1>
+    </header>
+
+    <div class="container">
+        <input type="text" id="content" placeholder="Enter property names (e.g., email, firstName)">
+        <button onclick="getAnimal()">Get  Data</button>
+        <div id="display">
+            <div id="list"></div>
+        </div>
+    </div>
+
+    <script>
+        function getAnimal() {
+            fetch('https://fakerapi.it/api/v1/persons')
+                .then(response => response.json())
+                .then(data => {
+                    // Get the value from the input field and split by comma
+                    let content = document.querySelector('#content').value.trim();
+                    let properties = content.split(',').map(prop => prop.trim()).filter(prop => prop);
+
+                    // Remove duplicates
+                    properties = [...new Set(properties)];
+
+                    // Check if the input field is empty or invalid
+                    if (properties.length === 0) {
+                        document.querySelector("#list").innerHTML = '<p class="alert">Please enter at least one property name.</p>';
+                        return;
+                    }
+
+                    // Validate if the properties exist in the data
+                    if (!properties.every(prop => data.data[0].hasOwnProperty(prop))) {
+                        document.querySelector("#list").innerHTML = '<p class="alert">One or more property names are invalid. Please enter valid property names.</p>';
+                        return;
+                    }
+
+                    // Create a table with headers based on properties
+                    let table = `<table>
+                                    <thead>
+                                        <tr>
+                                            <th>First Name</th>
+                                            <th>Last Name</th>
+                                            ${properties.map(prop => `<th>${prop.charAt(0).toUpperCase() + prop.slice(1)}</th>`).join('')}
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+
+                    // Populate the table rows
+                    for (let i = 0; i < data.data.length; i++) {
+                        let row = data.data[i];
+                        table += `<tr>
+                                    <td>${row.firstName}</td>
+                                    <td>${row.lastName}</td>
+                                    ${properties.map(prop => `<td>${row[prop] || 'N/A'}</td>`).join('')}
+                                  </tr>`;
+                    }
+
+                    // Close the table
+                    table += `</tbody></table>`;
+
+                    // Display the table
+                    document.querySelector("#list").innerHTML = table;
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.querySelector("#list").innerHTML = '<p class="alert">Error fetching data. Please try again later.</p>';
+                });
+        }
+    </script>
+
+</body>
+</html>
